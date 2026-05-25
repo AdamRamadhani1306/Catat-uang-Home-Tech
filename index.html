@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catatan Keuangan</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0f14;
+    --bg2: #16181f;
+    --bg3: #1e2029;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0f0f5;
+    --text2: #8b8d9e;
+    --text3: #5a5c6e;
+    --green: #2ecc87;
+    --green-bg: rgba(46,204,135,0.1);
+    --red: #ff5e7a;
+    --red-bg: rgba(255,94,122,0.1);
+    --blue: #5b9cf6;
+    --blue-bg: rgba(91,156,246,0.1);
+    --accent: #a78bfa;
+    --accent-bg: rgba(167,139,250,0.12);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  header {
+    padding: 24px 32px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: var(--accent-bg);
+    border: 1px solid rgba(167,139,250,0.25);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .date-badge {
+    font-size: 12px;
+    color: var(--text2);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* MAIN LAYOUT */
+  main {
+    flex: 1;
+    padding: 24px 32px 40px;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    grid-template-rows: auto auto 1fr;
+    gap: 20px;
+  }
+
+  /* SUMMARY CARDS */
+  .summary-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .card.income::before { background: var(--green); }
+  .card.expense::before { background: var(--red); }
+  .card.balance::before { background: var(--accent); }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text2);
+    margin-bottom: 10px;
+  }
+  .card-amount {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -1px;
+  }
+  .card.income .card-amount { color: var(--green); }
+  .card.expense .card-amount { color: var(--red); }
+  .card.balance .card-amount { color: var(--accent); }
+  .card-sub {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 6px;
+  }
+
+  /* FORM */
+  .form-panel {
+    grid-column: 1;
+    grid-row: 2 / 4;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    height: fit-content;
+  }
+  .form-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .form-title span { color: var(--text2); font-weight: 400; }
+
+  .type-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .type-btn {
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .type-btn.active-income {
+    background: var(--green-bg);
+    border-color: rgba(46,204,135,0.35);
+    color: var(--green);
+  }
+  .type-btn.active-expense {
+    background: var(--red-bg);
+    border-color: rgba(255,94,122,0.35);
+    color: var(--red);
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text2);
+  }
+  input, select, textarea {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    padding: 10px 14px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(167,139,250,0.1);
+  }
+  input[type="number"] { font-family: 'JetBrains Mono', monospace; }
+  select option { background: var(--bg3); }
+
+  .submit-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.2px;
+  }
+  .submit-btn:hover { background: #9775fa; transform: translateY(-1px); }
+  .submit-btn:active { transform: translateY(0); }
+
+  /* CHART AREA */
+  .chart-panel {
+    grid-column: 2;
+    grid-row: 2;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .chart-legend {
+    display: flex;
+    gap: 14px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .legend-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    height: 140px;
+    padding-top: 10px;
+  }
+  .bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .bars {
+    display: flex;
+    gap: 3px;
+    align-items: flex-end;
+    width: 100%;
+    justify-content: center;
+    height: 120px;
+  }
+  .bar {
+    width: 14px;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    min-height: 3px;
+  }
+  .bar.inc { background: var(--green); opacity: 0.85; }
+  .bar.exp { background: var(--red); opacity: 0.85; }
+  .bar-label {
+    font-size: 10px;
+    color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+  }
+
+  /* TRANSACTIONS */
+  .tx-panel {
+    grid-column: 2;
+    grid-row: 3;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .tx-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .search-box {
+    flex: 1;
+    position: relative;
+  }
+  .search-box input {
+    padding-left: 36px;
+    font-size: 13px;
+  }
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    font-size: 14px;
+    pointer-events: none;
+  }
+  .filter-select { width: 130px; font-size: 13px; }
+
+  .tx-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    max-height: 280px;
+    padding-right: 4px;
+  }
+  .tx-list::-webkit-scrollbar { width: 4px; }
+  .tx-list::-webkit-scrollbar-track { background: transparent; }
+  .tx-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  .tx-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.2s;
+    animation: slideIn 0.25s ease;
+  }
+  .tx-item:hover { border-color: var(--border2); }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .tx-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .tx-icon.income { background: var(--green-bg); }
+  .tx-icon.expense { background: var(--red-bg); }
+  .tx-info { flex: 1; min-width: 0; }
+  .tx-desc {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tx-meta {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+    display: flex;
+    gap: 8px;
+  }
+  .tx-cat {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text2);
+  }
+  .tx-amount {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .tx-amount.income { color: var(--green); }
+  .tx-amount.expense { color: var(--red); }
+  .tx-del {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .tx-del:hover { color: var(--red); background: var(--red-bg); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text3);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .empty-state .empty-icon { font-size: 32px; margin-bottom: 10px; }
+
+  /* CATEGORY BADGES in form */
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .cat-chip {
+    padding: 7px 6px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .cat-chip:hover { border-color: var(--border2); color: var(--text); }
+  .cat-chip.selected {
+    background: var(--accent-bg);
+    border-color: rgba(167,139,250,0.35);
+    color: var(--accent);
+  }
+  .cat-chip .chip-icon { font-size: 14px; }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 12px 18px;
+    font-size: 13px;
+    color: var(--text);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  @media (max-width: 900px) {
+    main {
+      grid-template-columns: 1fr;
+      padding: 16px;
+    }
+    .summary-row { grid-template-columns: repeat(3, 1fr); }
+    .form-panel { grid-row: auto; }
+    .chart-panel, .tx-panel { grid-column: 1; }
+  }
+  @media (max-width: 600px) {
+    header { padding: 16px; }
+    .summary-row { grid-template-columns: 1fr; }
+    main { padding: 12px; gap: 12px; }
+    .card-amount { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">💰</div>
+    CatatUang
+  </div>
+  <div class="date-badge" id="currentDate"></div>
+</header>
+
+<main>
+  <!-- SUMMARY -->
+  <div class="summary-row">
+    <div class="card income">
+      <div class="card-label">Total Pemasukan</div>
+      <div class="card-amount" id="totalIncome">Rp 0</div>
+      <div class="card-sub" id="incomeCount">0 transaksi</div>
+    </div>
+    <div class="card expense">
+      <div class="card-label">Total Pengeluaran</div>
+      <div class="card-amount" id="totalExpense">Rp 0</div>
+      <div class="card-sub" id="expenseCount">0 transaksi</div>
+    </div>
+    <div class="card balance">
+      <div class="card-label">Saldo Bersih</div>
+      <div class="card-amount" id="netBalance">Rp 0</div>
+      <div class="card-sub" id="totalCount">0 total transaksi</div>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div class="form-panel">
+    <div class="form-title">Tambah Transaksi <span>baru</span></div>
+
+    <div class="type-toggle">
+      <button class="type-btn active-income" id="btnIncome" onclick="setType('income')">
+        ↑ Pemasukan
+      </button>
+      <button class="type-btn" id="btnExpense" onclick="setType('expense')">
+        ↓ Pengeluaran
+      </button>
+    </div>
+
+    <div class="field-group">
+      <label>Keterangan</label>
+      <input type="text" id="desc" placeholder="Contoh: Gaji bulanan..." maxlength="60">
+    </div>
+
+    <div class="field-group">
+      <label>Jumlah (Rp)</label>
+      <input type="number" id="amount" placeholder="0" min="0">
+    </div>
+
+    <div class="field-group">
+      <label>Tanggal</label>
+      <input type="date" id="txDate">
+    </div>
+
+    <div class="field-group">
+      <label>Kategori</label>
+      <div class="cat-grid" id="catGrid"></div>
+    </div>
+
+    <button class="submit-btn" onclick="addTransaction()">+ Simpan Transaksi</button>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart-panel">
+    <div class="panel-header">
+      <div class="panel-title">Ringkasan 6 Bulan Terakhir</div>
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:var(--green)"></span>Masuk</span>
+        <span><span class="legend-dot" style="background:var(--red)"></span>Keluar</span>
+      </div>
+    </div>
+    <div class="bar-chart" id="barChart"></div>
+  </div>
+
+  <!-- TRANSACTIONS -->
+  <div class="tx-panel">
+    <div class="panel-header">
+      <div class="panel-title">Riwayat Transaksi</div>
+    </div>
+    <div class="tx-controls">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Cari transaksi..." oninput="renderList()">
+      </div>
+      <select class="filter-select" id="filterType" onchange="renderList()">
+        <option value="all">Semua</option>
+        <option value="income">Pemasukan</option>
+        <option value="expense">Pengeluaran</option>
+      </select>
+    </div>
+    <div class="tx-list" id="txList"></div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+const CATS = {
+  income: [
+    { key:'gaji', label:'Gaji', icon:'💼' },
+    { key:'bisnis', label:'Bisnis', icon:'🏪' },
+    { key:'investasi', label:'Investasi', icon:'📈' },
+    { key:'hadiah', label:'Hadiah', icon:'🎁' },
+    { key:'freelance', label:'Freelance', icon:'💻' },
+    { key:'lainnya', label:'Lainnya', icon:'✨' },
+  ],
+  expense: [
+    { key:'makan', label:'Makan', icon:'🍜' },
+    { key:'transport', label:'Transport', icon:'🚗' },
+    { key:'belanja', label:'Belanja', icon:'🛒' },
+    { key:'tagihan', label:'Tagihan', icon:'📄' },
+    { key:'hiburan', label:'Hiburan', icon:'🎬' },
+    { key:'kesehatan', label:'Kesehatan', icon:'🏥' },
+    { key:'pendidikan', label:'Pendidikan', icon:'📚' },
+    { key:'tabungan', label:'Tabungan', icon:'🏦' },
+    { key:'lainnya', label:'Lainnya', icon:'📦' },
+  ]
+};
+
+let transactions = JSON.parse(localStorage.getItem('catatuang_txs') || '[]');
+let currentType = 'income';
+let selectedCat = '';
+
+function fmt(n) {
+  return 'Rp ' + Math.abs(n).toLocaleString('id-ID');
+}
+
+function setType(type) {
+  currentType = type;
+  selectedCat = '';
+  document.getElementById('btnIncome').className = 'type-btn' + (type === 'income' ? ' active-income' : '');
+  document.getElementById('btnExpense').className = 'type-btn' + (type === 'expense' ? ' active-expense' : '');
+  renderCats();
+}
+
+function renderCats() {
+  const grid = document.getElementById('catGrid');
+  const cats = CATS[currentType];
+  grid.innerHTML = cats.map(c => `
+    <button class="cat-chip${selectedCat === c.key ? ' selected' : ''}" onclick="selectCat('${c.key}')">
+      <span class="chip-icon">${c.icon}</span>
+      ${c.label}
+    </button>
+  `).join('');
+}
+
+function selectCat(key) {
+  selectedCat = key;
+  renderCats();
+}
+
+function addTransaction() {
+  const desc = document.getElementById('desc').value.trim();
+  const amount = parseFloat(document.getElementById('amount').value);
+  const date = document.getElementById('txDate').value;
+  if (!desc) return showToast('⚠️ Masukkan keterangan transaksi');
+  if (!amount || amount <= 0) return showToast('⚠️ Masukkan jumlah yang valid');
+  if (!date) return showToast('⚠️ Pilih tanggal transaksi');
+  if (!selectedCat) return showToast('⚠️ Pilih kategori transaksi');
+
+  const catData = CATS[currentType].find(c => c.key === selectedCat);
+  const tx = {
+    id: Date.now(),
+    type: currentType,
+    desc,
+    amount,
+    date,
+    cat: selectedCat,
+    catLabel: catData.label,
+    catIcon: catData.icon
+  };
+  transactions.unshift(tx);
+  save();
+  document.getElementById('desc').value = '';
+  document.getElementById('amount').value = '';
+  selectedCat = '';
+  renderCats();
+  renderAll();
+  showToast(`${currentType === 'income' ? '✅' : '💸'} Transaksi berhasil disimpan`);
+}
+
+function deleteTransaction(id) {
+  transactions = transactions.filter(t => t.id !== id);
+  save();
+  renderAll();
+  showToast('🗑️ Transaksi dihapus');
+}
+
+function save() {
+  localStorage.setItem('catatuang_txs', JSON.stringify(transactions));
+}
+
+function renderAll() {
+  renderSummary();
+  renderList();
+  renderChart();
+}
+
+function renderSummary() {
+  const income = transactions.filter(t => t.type === 'income');
+  const expense = transactions.filter(t => t.type === 'expense');
+  const totalIn = income.reduce((s, t) => s + t.amount, 0);
+  const totalOut = expense.reduce((s, t) => s + t.amount, 0);
+  const net = totalIn - totalOut;
+  document.getElementById('totalIncome').textContent = fmt(totalIn);
+  document.getElementById('totalExpense').textContent = fmt(totalOut);
+  document.getElementById('netBalance').textContent = (net < 0 ? '-' : '') + fmt(net);
+  document.getElementById('netBalance').style.color = net >= 0 ? 'var(--accent)' : 'var(--red)';
+  document.getElementById('incomeCount').textContent = income.length + ' transaksi';
+  document.getElementById('expenseCount').textContent = expense.length + ' transaksi';
+  document.getElementById('totalCount').textContent = transactions.length + ' total transaksi';
+}
+
+function renderList() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const f = document.getElementById('filterType').value;
+  const list = document.getElementById('txList');
+  let txs = transactions;
+  if (f !== 'all') txs = txs.filter(t => t.type === f);
+  if (q) txs = txs.filter(t => t.desc.toLowerCase().includes(q) || t.catLabel.toLowerCase().includes(q));
+
+  if (!txs.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>Belum ada transaksi ditemukan.<br>Tambahkan transaksi pertamamu!</div>`;
+    return;
+  }
+  list.innerHTML = txs.map(t => {
+    const d = new Date(t.date);
+    const dateStr = d.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+    return `
+    <div class="tx-item">
+      <div class="tx-icon ${t.type}">${t.catIcon}</div>
+      <div class="tx-info">
+        <div class="tx-desc">${t.desc}</div>
+        <div class="tx-meta">
+          <span>${dateStr}</span>
+          <span class="tx-cat">${t.catLabel}</span>
+        </div>
+      </div>
+      <div class="tx-amount ${t.type}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)}</div>
+      <button class="tx-del" onclick="deleteTransaction(${t.id})" title="Hapus">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function renderChart() {
+  const chart = document.getElementById('barChart');
+  const months = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ y: d.getFullYear(), m: d.getMonth(), label: d.toLocaleDateString('id-ID', { month:'short' }) });
+  }
+  const data = months.map(mo => {
+    const txs = transactions.filter(t => {
+      const d = new Date(t.date);
+      return d.getFullYear() === mo.y && d.getMonth() === mo.m;
+    });
+    return {
+      label: mo.label,
+      inc: txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
+      exp: txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+    };
+  });
+  const maxVal = Math.max(...data.map(d => Math.max(d.inc, d.exp)), 1);
+
+  chart.innerHTML = data.map(d => {
+    const ih = Math.round((d.inc / maxVal) * 110);
+    const eh = Math.round((d.exp / maxVal) * 110);
+    return `
+    <div class="bar-group">
+      <div class="bars">
+        <div class="bar inc" style="height:${ih}px" title="Masuk: ${fmt(d.inc)}"></div>
+        <div class="bar exp" style="height:${eh}px" title="Keluar: ${fmt(d.exp)}"></div>
+      </div>
+      <div class="bar-label">${d.label}</div>
+    </div>`;
+  }).join('');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Init
+const now = new Date();
+document.getElementById('currentDate').textContent = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+document.getElementById('txDate').value = now.toISOString().split('T')[0];
+renderCats();
+renderAll();
+
+// Demo data if empty
+if (!transactions.length) {
+  const demo = [
+    { id:1, type:'income', desc:'Gaji Bulan Mei', amount:5000000, date: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0], cat:'gaji', catLabel:'Gaji', catIcon:'💼' },
+    { id:2, type:'expense', desc:'Belanja bulanan', amount:850000, date: new Date(now.getFullYear(), now.getMonth(), 5).toISOString().split('T')[0], cat:'belanja', catLabel:'Belanja', catIcon:'🛒' },
+    { id:3, type:'expense', desc:'Tagihan listrik & air', amount:320000, date: new Date(now.getFullYear(), now.getMonth(), 8).toISOString().split('T')[0], cat:'tagihan', catLabel:'Tagihan', catIcon:'📄' },
+    { id:4, type:'income', desc:'Freelance desain logo', amount:750000, date: new Date(now.getFullYear(), now.getMonth(), 12).toISOString().split('T')[0], cat:'freelance', catLabel:'Freelance', catIcon:'💻' },
+    { id:5, type:'expense', desc:'Makan siang kantor', amount:45000, date: new Date(now.getFullYear(), now.getMonth(), 15).toISOString().split('T')[0], cat:'makan', catLabel:'Makan', catIcon:'🍜' },
+    { id:6, type:'income', desc:'Gaji Bulan April', amount:5000000, date: new Date(now.getFullYear(), now.getMonth()-1, 1).toISOString().split('T')[0], cat:'gaji', catLabel:'Gaji', catIcon:'💼' },
+    { id:7, type:'expense', desc:'Servis motor', amount:280000, date: new Date(now.getFullYear(), now.getMonth()-1, 10).toISOString().split('T')[0], cat:'transport', catLabel:'Transport', catIcon:'🚗' },
+  ];
+  transactions = demo;
+  save();
+  renderAll();
+}
+</script>
+</body>
+</html>
